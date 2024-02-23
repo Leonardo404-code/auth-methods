@@ -6,7 +6,8 @@ import (
 	"os"
 	"time"
 
-	basicauth "github.com/leonardo404-code/auth-methods/basic-auth"
+	basicauth "github.com/leonardo404-code/auth-methods/basicAuth"
+	"github.com/leonardo404-code/auth-methods/cookies"
 )
 
 func init() {
@@ -16,11 +17,9 @@ func init() {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/basicAuth", basicauth.BasicAuth(
-		func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("hello world"))
-		}),
-	)
+	mux.HandleFunc("/basic_auth", basicauth.BasicAuth)
+	mux.HandleFunc("/set_cookie", cookies.SetCookie)
+	mux.HandleFunc("/get_cookie", cookies.GetCookie)
 
 	server := &http.Server{
 		Addr:         ":3000",
