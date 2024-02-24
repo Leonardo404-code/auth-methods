@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	os.Setenv("USERNAME", "leonardo")
+	os.Setenv("USERNAME", "jhon")
 	os.Setenv("PASSWORD", "12345678")
 }
 

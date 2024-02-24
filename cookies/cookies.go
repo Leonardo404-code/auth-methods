@@ -1,16 +1,32 @@
 package cookies
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func SetCookie(w http.ResponseWriter, r *http.Request) {
+	user := User{
+		Name: "Jhon Doe",
+		Age:  21,
+	}
+
+	var buf bytes.Buffer
+
+	if err := gob.NewEncoder(&buf).Encode(&user); err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
+
 	cookie := http.Cookie{
 		Name:     "auth",
-		Value:    "Hello Zoë!",
+		Value:    buf.String(),
 		Path:     "/",
 		MaxAge:   3600,
 		HttpOnly: true,
@@ -18,7 +34,7 @@ func SetCookie(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 
-	if err := write(w, cookie); err != nil {
+	if err := writeEncrypted(w, cookie, secretKey); err != nil {
 		log.Println(err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
@@ -28,7 +44,10 @@ func SetCookie(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetCookie(w http.ResponseWriter, r *http.Request) {
-	cookie, err := read(r, "auth")
+	cookies := r.Cookies()
+	auth := cookies[0]
+
+	cookie, err := readEncrypted(r, auth.Name, secretKey)
 	if err != nil {
 		switch {
 		case errors.Is(err, http.ErrNoCookie):
@@ -40,5 +59,16 @@ func GetCookie(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Write([]byte(cookie))
+	var user User
+
+	reader := strings.NewReader(cookie)
+
+	if err := gob.NewDecoder(reader).Decode(&user); err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "Name: %q\n", user.Name)
+	fmt.Fprintf(w, "Age: %d\n", user.Age)
 }
