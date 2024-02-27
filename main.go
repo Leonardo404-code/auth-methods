@@ -8,6 +8,7 @@ import (
 
 	basicauth "github.com/leonardo404-code/auth-methods/basicAuth"
 	"github.com/leonardo404-code/auth-methods/cookies"
+	"github.com/leonardo404-code/auth-methods/jwt"
 )
 
 func init() {
@@ -20,6 +21,8 @@ func main() {
 	mux.HandleFunc("/basic_auth", basicauth.BasicAuth)
 	mux.HandleFunc("/set_cookie", cookies.SetCookie)
 	mux.HandleFunc("/get_cookie", cookies.GetCookie)
+	mux.HandleFunc("/set_jwt", jwt.CreateToken)
+	mux.HandleFunc("/get_jwt", jwt.GetTokenData)
 
 	server := &http.Server{
 		Addr:         ":3000",
